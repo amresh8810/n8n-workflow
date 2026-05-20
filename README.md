@@ -69,3 +69,25 @@ Follow these steps to deploy any of the workflows in your own n8n instance:
 1. **Clone this repository** (or download the `.json` files):
    ```bash
    git clone https://github.com/amresh8810/n8n-workflow.git
+   ```
+2. **Import into n8n**:
+   - Open your n8n workspace.
+   - Go to **Workflows** > **Add Workflow**.
+   - Click the options menu (top right) $\rightarrow$ **Import from File**.
+   - Select the desired `.json` file from the repository.
+3. **Configure Node Credentials**:
+   - The imported workflow will highlight nodes lacking credentials.
+   - Click each node and link or create the necessary connection (e.g., Google OAuth2, Telegram API).
+4. **Activate**:
+   - Toggle the switch at the top right to **Active**.
+
+## 🤝 Contributing
+Contributions are highly encouraged! If you have built an exciting new n8n automation or improved an existing one:
+1. Fork the project.
+2. Create your feature branch (`git checkout -b feature/AmazingWorkflow`).
+3. Commit your changes (`git commit -m 'Add some AmazingWorkflow'`).
+4. Push to the branch (`git push origin feature/AmazingWorkflow`).
+5. Open a Pull Request.
+
+## 📄 License
+Distributed under the **MIT License**. See the `LICENSE` file for more information.
