@@ -18,35 +18,31 @@ This repository provides production-ready, highly sophisticated [n8n](https://n8
 
 ## 🚀 Key Features & Workflows
 
-### 1. 🧠 AI Research & Human Validation Agent
+### 1. 🌐 Multi-Modal Omni-Assistant (`multi-Assistent.json`)
+The ultimate, super-charged Telegram assistant with a massive suite of tools and deep web integration.
+* **Core Technologies**: Telegram (Voice & Text), LangChain Agents, OpenRouter, Google Workspace, Custom APIs.
+* **Capabilities**:
+  - **Weather & Places**: Fetches real-time weather forecasts and searches for real-world places (cafes, hospitals, hotels).
+  - **YouTube Search**: Directly searches and returns YouTube videos/links.
+  - **Google Workspace**: Reads/replies to Gmail, schedules Google Calendar events, and queries Google Docs.
+  - **Advanced Processing**: Uses multi-step planning agents and handles complex file conversion/transcription via OpenAI.
+
+### 2. 🧠 AI Research & Human Validation Agent (`AI Research Human Validation Agent.json`)
 An automated research pipeline that integrates robust AI search capabilities with human fact-checking.
-* **Core Technologies**: Telegram, Tavily Web Search, OpenRouter (AI), Gmail, Google Docs.
 * **How it works**: Provide a topic via Telegram $\rightarrow$ AI conducts deep web research $\rightarrow$ AI summarizes findings $\rightarrow$ Sent via Email for Human Validation $\rightarrow$ Once approved, converted to PDF & saved to Google Docs.
-* **File**: [`AI Research Human Validation Agent.json`](./superbase_n8n/AI%20Research%20Human%20Validation%20Agent.json)
 
-### 2. 🤖 Intelligent Telegram Assistant (Omni-Channel)
-A personal, multi-modal assistant embedded directly into Telegram capable of handling complex daily tasks.
-* **Core Technologies**: Telegram (Voice & Text), OpenAI (Whisper), LangChain Agent, OpenRouter, SerpAPI, Google Workspace (Calendar, Gmail, Contacts, Docs, Tasks).
-* **How it works**: Transcribes voice messages or reads text, maintaining contextual memory to act as a seamless assistant. It can read/reply to emails, schedule/delete calendar events, search the web, and manage your contacts—all via conversational AI.
-* **Files**: [`Assistent.json`](./superbase_n8n/Assistent.json) / [`my_Assistent.json`](./superbase_n8n/my_Assistent.json)
+### 3. 🤖 Standard Telegram Assistant (`Assistent.json` / `my_Assistent.json`)
+A streamlined conversational assistant embedded directly into Telegram capable of handling daily tasks, web searches (SerpAPI), and calendar management.
 
-### 3. 📧 Human-in-the-Loop (HITL) Email Agent
+### 4. 📧 Human-in-the-Loop (HITL) Email Agent (`HITL Email Agent - Main Workflow.json`)
 Never worry about manually drafting repetitive emails again, while still maintaining full control over your outbox.
-* **Core Technologies**: Gmail, AI Draft Generator, Telegram.
 * **How it works**: Monitors incoming emails $\rightarrow$ AI drafts a contextual reply $\rightarrow$ Sends the draft to Telegram $\rightarrow$ You click *Approve* or *Reject* $\rightarrow$ The email is sent automatically if approved.
-* **File**: [`HITL Email Agent - Main Workflow.json`](./superbase_n8n/HITL%20Email%20Agent%20-%20Main%20Workflow.json)
 
-### 4. 🗄️ RAG Chat Assistant (Vector Search)
-A sophisticated Retrieval-Augmented Generation (RAG) assistant that grounds AI responses in your specific documentation.
-* **Core Technologies**: OpenRouter, Supabase Vector Store, Postgres Chat Memory, OpenAI Embeddings.
-* **How it works**: Ingests files, splits text into embeddings, and stores them in Supabase. When a question is asked, it searches the vector database and provides an accurate, context-aware answer.
-* **File**: [`My workflow 2.json`](./superbase_n8n/My%20workflow%202.json)
+### 5. 🗄️ RAG Chat Assistant (`My workflow 2.json`)
+A sophisticated Retrieval-Augmented Generation (RAG) assistant that grounds AI responses in your specific documentation using **Supabase Vector Store**, **Postgres Chat Memory**, and **OpenAI Embeddings**.
 
-### 5. 🎨 Image Generation Form Automator
-A streamlined workflow to generate images dynamically from user form submissions.
-* **Core Technologies**: Webhooks (Forms), OpenRouter, Image Generation API.
-* **How it works**: User submits a form with details $\rightarrow$ AI crafts an optimized prompt $\rightarrow$ Image is generated and downloaded/saved automatically.
-* **File**: [`ural.json`](./superbase_n8n/ural.json)
+### 6. 🎨 Image Generation Form Automator (`ural.json`)
+A streamlined workflow that receives form submissions via Webhook, crafts an optimized AI prompt using OpenRouter, and automatically generates/downloads the image.
 
 <hr />
 
@@ -56,7 +52,7 @@ Follow these steps to deploy any of the workflows in your own n8n instance:
 
 ### Prerequisites
 1. An active [n8n environment](https://docs.n8n.io/hosting/) (Self-hosted or Cloud).
-2. API keys for the services utilized in your chosen workflow (e.g., OpenAI, OpenRouter, Tavily, SerpAPI, Telegram Bot Token).
+2. API keys for the services utilized in your chosen workflow (e.g., OpenAI, OpenRouter, Tavily, SerpAPI, Telegram).
 3. Google Cloud Console App configured with OAuth2 (for Gmail, Calendar, Docs, and Contacts integrations).
 
 ### Deployment Steps
