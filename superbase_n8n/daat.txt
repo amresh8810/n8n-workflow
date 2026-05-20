@@ -1,0 +1,19 @@
+url:---https://poopsmomomnafqhvfvsc.supabase.co/rest/v1/
+
+service_role
+secret :-- 
+ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvb3BzbW9tb21uYWZxaHZmdnNjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzY0NTY5NSwiZXhwIjoyMDkzMjIxNjk1fQ.nQ8ihdqE6wVfLdA9HHdZ44F07bnBuDLqDUa9m2O1Cew
+
+
+anon
+public : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvb3BzbW9tb21uYWZxaHZmdnNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NDU2OTUsImV4cCI6MjA5MzIyMTY5NX0.ePiQyhhnZNCWA8XX7pACVZASfMOxyiiuqsDnxJ9swhQ 
+
+
+
+                                           Postgres Chat Memory
+
+host : aws-1-ap-northeast-1.pooler.supabase.com
+database : postgres
+user: postgres.poopsmomomnafqhvfvsc
+port : 6543
+password : @amresh123  esh me doute hai 

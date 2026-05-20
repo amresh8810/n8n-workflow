@@ -1,0 +1,441 @@
+{
+  "name": "HITL Email Agent - Main Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hitl-email",
+        "options": {}
+      },
+      "id": "74437057-4a18-4d67-96e3-468be14560fc",
+      "name": "Email Request Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -32,
+        -80
+      ],
+      "webhookId": "f3f1036d-1b6f-460a-99cc-0380219765c5"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json;\n\nreturn [\n  {\n    json: {\n      to: body.From || '',\n      recipientName: 'Client',\n      subject: body.Subject || 'Important Update',\n      context: body.snippet || '',\n      tone: 'professional',\n      sender: 'Amresh Kumar'\n    }\n  }\n];"
+      },
+      "id": "b3b9f3ef-0dcf-4d30-ad2c-2cac5f8003f8",
+      "name": "Setup Variables",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.3-70b-versatile\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a professional email writer.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Write a professional email to {{$json.recipientName}} regarding {{$json.subject}}. Context: {{$json.context}}. Tone: {{$json.tone}}. Sign off as {{$json.sender}}.\"\n    }\n  ],\n  \"temperature\": 0.7\n}",
+        "options": {}
+      },
+      "id": "ede04c68-4390-4ed5-a454-1dc723092df5",
+      "name": "AI Draft Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      ...$json,\n      emailDraft: $json.choices[0].message.content\n    }\n  }\n];"
+      },
+      "id": "1c80b614-9c76-4bbf-bef9-3bc47c8ab5ac",
+      "name": "Extract Email Draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "=6186941474",
+        "text": "={{ $json.choices[0].message.content }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "✅ Approve & Send",
+                    "additionalFields": {
+                      "callback_data": "={{ \"approve:\" + $json.execId }}"
+                    }
+                  },
+                  {
+                    "text": "❌ Reject",
+                    "additionalFields": {
+                      "callback_data": "={{ \"reject:\" + $json.execId }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "35680278-8862-4765-ac50-4f48579c7fb2",
+      "name": "Send Draft to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        864,
+        240
+      ],
+      "webhookId": "7a81a791-7473-4232-a50a-00bde2f861f2",
+      "credentials": {
+        "telegramApi": {
+          "id": "YxoZfLAAHGpoT1cU",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "limitWaitTime": true,
+        "resumeAmount": 24,
+        "resumeUnit": "seconds",
+        "options": {}
+      },
+      "id": "a6028d60-9c26-4118-9bda-5ddf95756313",
+      "name": "Wait for Human",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1088,
+        240
+      ],
+      "webhookId": "24017cf0-1c8e-45ca-abd7-83ddf3bdaafc"
+    },
+    {
+      "parameters": {
+        "jsCode": "const incoming = $input.first().json;\n\nconst action =\n  incoming.callback_query?.data ||\n  incoming.body?.action ||\n  incoming.action ||\n  'approve';\n\nreturn [\n  {\n    json: {\n      ...incoming,\n      action\n    }\n  }\n];"
+      },
+      "id": "3e7c14ed-7549-40a2-a8c8-3f9742429016",
+      "name": "Get Action",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9318a1f8-641a-423f-aedc-0f487f26e10c",
+              "leftValue": "approve",
+              "rightValue": "={{$json.action}}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4c9bfa49-2278-4e2f-9d6f-7c1d0177e91c",
+      "name": "Approve or Reject",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1536,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $(\"Setup Variables\").first().json.to }}",
+        "subject": "={{$(\"Setup Variables\").first().json.subject}}",
+        "emailType": "text",
+        "message": "={{ $json.result.text }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "eca792e9-08dd-4f39-b9a0-d8d83c63a3e3",
+      "name": "Send Email via Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1760,
+        144
+      ],
+      "webhookId": "34cedc39-b5ce-44e4-beb6-1c2f10872354",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "WR2eDuCvqCiLG5I8",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Approve or Reject').item.json.result.chat.id }}",
+        "text": "={{ \"✅ *Email sent!*\\nDelivered to: \" + $(\"Extract Email Draft\").first().json.to }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "837ba021-fae8-4f8f-8ed2-d2a89819965b",
+      "name": "Notify Email Sent",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1984,
+        144
+      ],
+      "webhookId": "824b5db5-1bd8-4928-96e7-d6eed8378bf2",
+      "credentials": {
+        "telegramApi": {
+          "id": "YxoZfLAAHGpoT1cU",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Send Draft to Telegram').item.json.result.chat.id }}",
+        "text": "❌ *Email draft rejected.* No email was sent.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "2b10accf-e349-4710-9fdc-c6b185946182",
+      "name": "Notify Rejected",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1760,
+        336
+      ],
+      "webhookId": "8e0464b8-2809-4c93-98bb-87a39fcf3ee8",
+      "credentials": {
+        "telegramApi": {
+          "id": "YxoZfLAAHGpoT1cU",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyHour"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -32,
+        240
+      ],
+      "id": "77d6445b-b639-44b8-b363-ce598fe69310",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "3vWyO4iQcV71MEVn",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "##📧 AI Email Approval Workflow\n*1. Gmail Trigger detects incoming emails\n2. Extract email details (sender, subject, context)\n3. AI generates professional email draft\n4. Draft sent to Telegram for human approval\n5. User clicks Approve or Reject\n6. If approved → Gmail sends email automatically\n7. Telegram sends confirmation notification\n\nTech Used:\n- Gmail Trigger\n- Groq AI API\n- Telegram Bot\n- Human-in-the-Loop Approval\n- Gmail Send",
+        "height": 320,
+        "width": 448
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        768,
+        -256
+      ],
+      "typeVersion": 1,
+      "id": "b2159a6c-dfcd-4ecf-972a-fd2c9ff63497",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Email Request Trigger": {
+      "main": [
+        []
+      ]
+    },
+    "Setup Variables": {
+      "main": [
+        [
+          {
+            "node": "AI Draft Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Draft Email": {
+      "main": [
+        [
+          {
+            "node": "Extract Email Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Email Draft": {
+      "main": [
+        [
+          {
+            "node": "Send Draft to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Draft to Telegram": {
+      "main": [
+        [
+          {
+            "node": "Wait for Human",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Human": {
+      "main": [
+        [
+          {
+            "node": "Get Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Action": {
+      "main": [
+        [
+          {
+            "node": "Approve or Reject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approve or Reject": {
+      "main": [
+        [
+          {
+            "node": "Send Email via Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email via Gmail": {
+      "main": [
+        [
+          {
+            "node": "Notify Email Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Setup Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "33a043b2-7d10-4940-bd31-8fc3ce7464af",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "52ed690743150cdd855cde6b5ff4efbca9cfab97b70c4952500afc818c18f7f0"
+  },
+  "id": "EwX7cTkNx1ydCV1H",
+  "tags": []
+}
