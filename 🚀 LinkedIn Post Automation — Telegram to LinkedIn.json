@@ -1,0 +1,544 @@
+{
+  "name": "🚀 LinkedIn Post Automation — Telegram to LinkedIn",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "39062e19-e8ff-409e-a050-cc8672e64179",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        96
+      ],
+      "webhookId": "f3228818-6eff-4e40-bbdf-dfa71f5331cb",
+      "credentials": {
+        "telegramApi": {
+          "id": "5Uvhk3z2KVB4yY5l",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "topic",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "chatId",
+              "value": "={{ $json.message.chat.id.toString() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "14962d9b-9f5d-4e04-b265-b299b314c120",
+      "name": "Extract Topic",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "HTTP-Referer",
+              "value": "https://amresh-automation.agency"
+            },
+            {
+              "name": "X-Title",
+              "value": "LinkedIn Post Generator"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": {
+          "model": "meta-llama/llama-3.3-70b-instruct",
+          "max_tokens": 1200,
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are a professional LinkedIn ghostwriter for Indian tech entrepreneurs. Write viral, human, high-engagement LinkedIn posts."
+            },
+            {
+              "role": "user",
+              "content": "={{ \"Write a LinkedIn post about: \" + $json.topic + \"\\n\\nRules:\\n- POWERFUL hook\\n- Short punchy lines\\n- Storytelling and insights\\n- Clear CTA\\n- 5-7 hashtags\\n- 150-250 words\\n\\nFormat:\\n[HOOK]\\n\\n[STORY]\\n\\n[INSIGHT]\\n\\n[CTA]\\n\\n[HASHTAGS]\" }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "fac747b8-a2b6-4b6b-b41f-bafbe70fb043",
+      "name": "AI Generate Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        448,
+        96
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "CyzGz6BEKiI7eC8B",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b1",
+              "name": "linkedinPost",
+              "value": "={{ $json.choices[0].message.content }}",
+              "type": "string"
+            },
+            {
+              "id": "b2",
+              "name": "chatId",
+              "value": "={{ $('Extract Topic').item.json.chatId }}",
+              "type": "string"
+            },
+            {
+              "id": "b3",
+              "name": "topic",
+              "value": "={{ $('Extract Topic').item.json.topic }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "20503e8c-2319-44c7-9c4a-28eb8fe7d72b",
+      "name": "Format Post",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "folderId": "root",
+        "title": "={{ 'LinkedIn Post - ' + $('Format Post').item.json.topic + ' - ' + new Date().toLocaleDateString('en-IN') }}"
+      },
+      "id": "7dd7818b-3656-4505-bb51-686d7a899335",
+      "name": "Save to Google Docs",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        896,
+        96
+      ],
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "oo0Q0HINpkIzWomD",
+          "name": "Google Docs OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "r1",
+              "name": "approveUrl",
+              "value": "={{ $execution.resumeUrl + '&status=approved' }}",
+              "type": "string"
+            },
+            {
+              "id": "r2",
+              "name": "rejectUrl",
+              "value": "={{ $execution.resumeUrl + '&status=rejected' }}",
+              "type": "string"
+            },
+            {
+              "id": "r3",
+              "name": "linkedinPost",
+              "value": "={{ $('Format Post').item.json.linkedinPost }}",
+              "type": "string"
+            },
+            {
+              "id": "r4",
+              "name": "chatId",
+              "value": "={{ $('Format Post').item.json.chatId }}",
+              "type": "string"
+            },
+            {
+              "id": "r5",
+              "name": "topic",
+              "value": "={{ $('Format Post').item.json.topic }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "122264e8-7e6d-4c6c-b92b-770548a5bd21",
+      "name": "Capture Resume URL",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "={{ '🧠 *LinkedIn Post Preview*\\n\\n📌 *Topic:* ' + $json.topic + '\\n\\n' + $json.linkedinPost + '\\n\\n━━━━━━━━━━━━━━\\n✅ [APPROVE — Post Karo LinkedIn Pe!](' + $json.approveUrl + ')\\n\\n❌ [REJECT — Cancel Karo](' + $json.rejectUrl + ')\\n\\n⏳ _Yeh links 1 ghante tak valid hain_' }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "efec4087-1006-4696-87e5-bedcf65ccb60",
+      "name": "Send Preview",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1344,
+        96
+      ],
+      "webhookId": "47b8cc76-7e12-4128-9b04-9585e4129675",
+      "credentials": {
+        "telegramApi": {
+          "id": "5Uvhk3z2KVB4yY5l",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "limitWaitTime": true,
+        "options": {}
+      },
+      "id": "9ee178b5-3bad-441b-9d32-38b55a3d6039",
+      "name": "Wait for Approval",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1568,
+        96
+      ],
+      "webhookId": "0219bbc0-8329-4115-8797-2666a8cae76f"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "check-approved",
+              "leftValue": "={{ $json.query.status }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "approved"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "86c3f24c-2b58-470b-9e18-38487f988be4",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1792,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.linkedin.com/v2/ugcPosts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Restli-Protocol-Version",
+              "value": "2.0.0"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": {
+          "author": "urn:li:person:q5yRTPz-iB",
+          "lifecycleState": "PUBLISHED",
+          "specificContent": {
+            "com.linkedin.ugc.ShareContent": {
+              "shareCommentary": {
+                "text": "={{ $('Format Post').item.json.linkedinPost }}"
+              },
+              "shareMediaCategory": "NONE"
+            }
+          },
+          "visibility": {
+            "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"
+          }
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "a55b7200-f1d8-449f-8b9a-357f118cac2c",
+      "name": "Publish to LinkedIn",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2016,
+        0
+      ],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "d7w2cCG6ZCmWDGko",
+          "name": "Unnamed credential"
+        },
+        "httpHeaderAuth": {
+          "id": "CyzGz6BEKiI7eC8B",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Format Post').item.json.chatId }}",
+        "text": "={{ '🎉 *Post Published Successfully!*\\n\\n🔗 LinkedIn post is now *LIVE!*\\n\\n📊 Topic: ' + $('Format Post').item.json.topic + '\\n\\n🤖 Powered by *Amresh Automation Agency*' }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "a4be7411-3f0a-4d50-ba28-3494e77d9ce1",
+      "name": "Success Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2240,
+        0
+      ],
+      "webhookId": "530432a1-5cca-4049-b43d-beea253199aa",
+      "credentials": {
+        "telegramApi": {
+          "id": "5Uvhk3z2KVB4yY5l",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Format Post').item.json.chatId }}",
+        "text": "={{ '❌ *Post Cancelled!*\\n\\nTumne LinkedIn post publish karne se *mana* kar diya.\\n\\n📝 Topic: ' + $('Format Post').item.json.topic + '\\n\\nKoi baat nahi! Jab ready ho tab dubara topic bhejo. 🚀' }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "1c225a4b-ad9f-4172-b725-572b219a3741",
+      "name": "Post Rejected",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2016,
+        192
+      ],
+      "webhookId": "ec3c734b-ee72-4a0c-a521-364a52484b1e",
+      "credentials": {
+        "telegramApi": {
+          "id": "5Uvhk3z2KVB4yY5l",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Topic": {
+      "main": [
+        [
+          {
+            "node": "AI Generate Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Generate Post": {
+      "main": [
+        [
+          {
+            "node": "Format Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Post": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Docs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Google Docs": {
+      "main": [
+        [
+          {
+            "node": "Capture Resume URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Capture Resume URL": {
+      "main": [
+        [
+          {
+            "node": "Send Preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Preview": {
+      "main": [
+        [
+          {
+            "node": "Wait for Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Approval": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Publish to LinkedIn",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Post Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publish to LinkedIn": {
+      "main": [
+        [
+          {
+            "node": "Success Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "2a8b5819-5bd2-4686-8a29-8b63176785d3",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "4242335095c473a3e62efee56ce5792cf6619514709d4b82a3861731af391797"
+  },
+  "id": "3kCFW66kKNu0WCnL",
+  "tags": []
+}
